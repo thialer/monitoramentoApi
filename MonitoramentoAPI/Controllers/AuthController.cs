@@ -4,6 +4,9 @@ using MonitoramentoAPI.Models;
 using MonitoramentoAPI.Services;
 using MonitoramentoAPI.DTOs;
 namespace MonitoramentoAPI.Controllers
+
+    //Rotas de autenticação para registro e login de usuários finalizadas
+
 {
     [ApiController]
     [Route("auth")]
