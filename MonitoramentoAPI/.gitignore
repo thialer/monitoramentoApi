@@ -1,0 +1,13 @@
+﻿# Arquivos do Visual Studio
+.vs/
+[Bb]in/
+[Ob]j/
+*.user
+*.suo
+*.shellspecific
+
+# Arquivos de publicação
+publish/
+
+# Configurações locais (cuidado para não subir sua string de conexão real se for pública)
+appsettings.Development.json
