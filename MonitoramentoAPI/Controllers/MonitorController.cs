@@ -2,10 +2,16 @@
 using Microsoft.AspNetCore.Mvc;
 using MonitoramentoAPI.Data;
 using MonitoramentoAPI.Models;
+using MonitoramentoAPI.Models.DTOs;
 using System.Security.Claims; 
 
+
+
+
 namespace MonitoramentoAPI.Controllers
+
 {
+
     [ApiController]
     [Route("monitors")]
     [Authorize]
@@ -19,20 +25,40 @@ namespace MonitoramentoAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(Monitor monitor)
+        public IActionResult Create(CreateMonitorRequest request)
         {
-            var claimId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             if (string.IsNullOrEmpty(claimId))
+                return Unauthorized();
+            //validação da URL
+            if (!Uri.IsWellFormedUriString(request.Url, UriKind.Absolute))
             {
-                return Unauthorized(new { message = "Usuário não identificado no token." });
+                return BadRequest(new { message = "URL inválida." });
             }
 
-            monitor.UserId = int.Parse(claimId);
+
+            if (!Uri.IsWellFormedUriString(request.Url, UriKind.Absolute))
+                return BadRequest(new { message = "URL inválida." });
+
+            if (request.Intervalo < 1)
+                return BadRequest(new { message = "Intervalo mínimo é 1 minuto." });
+
+            var monitor = new Monitor
+            {
+                Nome = request.Nome,
+                Url = request.Url,
+                Tipo = request.Tipo,
+                Intervalo = request.Intervalo,
+                UserId = int.Parse(claimId),
+                StatusAtual = "unknown",
+                Ativo = true
+            };
 
             _context.Monitors.Add(monitor);
             _context.SaveChanges();
 
-            return Ok(monitor);
+            return CreatedAtAction(nameof(GetById), new { id = monitor.Id }, monitor);
         }
 
         [HttpGet]
@@ -49,6 +75,25 @@ namespace MonitoramentoAPI.Controllers
                 .ToList();
 
             return Ok(monitors);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var claimId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(claimId))
+                return Unauthorized();
+
+            var userId = int.Parse(claimId);
+
+            var monitor = _context.Monitors
+                .FirstOrDefault(m => m.Id == id && m.UserId == userId);
+
+            if (monitor == null)
+                return NotFound();
+
+            return Ok(monitor);
+
         }
     }
 }
