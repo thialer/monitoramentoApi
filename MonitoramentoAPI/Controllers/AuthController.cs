@@ -68,11 +68,9 @@ namespace MonitoramentoAPI.Controllers
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
 
-            // sempre retorna OK (segurança)
             if (user == null)
                 return Ok(new { message = "Se o email existir, você receberá instruções." });
 
-            // remove tokens antigos
             var oldTokens = _context.PasswordResetTokens
                 .Where(t => t.UserId == user.Id && !t.Used);
 
@@ -91,7 +89,7 @@ namespace MonitoramentoAPI.Controllers
             _context.PasswordResetTokens.Add(resetToken);
             _context.SaveChanges();
 
-            // 🚨 simulação de envio de email
+            // simulação de envio de email
             Console.WriteLine($"Token de reset: {token}");
 
             return Ok(new { message = "Se o email existir, você receberá instruções." });
@@ -122,7 +120,6 @@ namespace MonitoramentoAPI.Controllers
 
             user.SenhaHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
 
-            // marca como usado e remove (segurança + limpeza)
             token.Used = true;
             _context.PasswordResetTokens.Remove(token);
 
