@@ -28,7 +28,6 @@ namespace MonitoramentoAPI.Controllers
             return int.Parse(claim.Value);
         }
 
-        // =========================
         // GET /user
         // =========================
         [HttpGet]
@@ -50,7 +49,6 @@ namespace MonitoramentoAPI.Controllers
             });
         }
 
-        // =========================
         // PUT /user
         // =========================
         [HttpPut]
@@ -71,7 +69,6 @@ namespace MonitoramentoAPI.Controllers
             return Ok(new { message = "Usuário atualizado com sucesso." });
         }
 
-        // =========================
         // DELETE /user
         // =========================
         [HttpDelete]

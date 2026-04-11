@@ -21,7 +21,6 @@ namespace MonitoramentoAPI.Controllers
             _tokenService = tokenService;
         }
 
-        // =========================
         // REGISTER
         // =========================
         [HttpPost("register")]
@@ -43,7 +42,6 @@ namespace MonitoramentoAPI.Controllers
             return Ok(new { message = "Usuário registrado com sucesso!" });
         }
 
-        // =========================
         // LOGIN
         // =========================
         [HttpPost("login")]
@@ -59,7 +57,6 @@ namespace MonitoramentoAPI.Controllers
             return Ok(new { token });
         }
 
-        // =========================
         // FORGOT PASSWORD
         // =========================
         [HttpPost("forgot-password")]
