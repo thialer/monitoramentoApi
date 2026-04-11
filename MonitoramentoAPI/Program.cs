@@ -75,6 +75,29 @@ builder.Services.AddSwaggerGen(options =>
             new string[] {}
         }
     });
+
+    //ordem dos controllers no Swagger
+    options.TagActionsBy(api =>
+    {
+        return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
+    });
+
+    options.DocInclusionPredicate((name, api) => true);
+
+    options.OrderActionsBy(apiDesc =>
+    {
+        var controller = apiDesc.ActionDescriptor.RouteValues["controller"];
+
+        return controller switch
+        {
+            "Auth" => "0",
+            "User" => "1",
+            "Monitors" => "2",
+            "Logs" => "3",
+            "Alerts" => "4",
+            _ => "5"
+        };
+    });
 });
 
 var app = builder.Build();
@@ -91,3 +114,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
