@@ -36,7 +36,7 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero // Remove a tolerância de 5 minutos, validando o tempo real
+        ClockSkew = TimeSpan.Zero 
     };
 });
 

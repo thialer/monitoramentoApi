@@ -30,8 +30,8 @@ namespace MonitoramentoAPI.Services
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 var token = new JwtSecurityToken(
-    issuer: _config["Jwt:Issuer"],   // Deve ler "monitoramento-api"
-    audience: _config["Jwt:Audience"], // Deve ler "monitoramento-api"
+    issuer: _config["Jwt:Issuer"],   
+    audience: _config["Jwt:Audience"], 
     claims: claims,
     expires: DateTime.UtcNow.AddHours(2),
     signingCredentials: creds
