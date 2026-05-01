@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MonitoramentoAPI.Data;
+using Monitoramento.Shared.Data;
 using System.Security.Claims;
 
-namespace MonitoramentoAPI.Controllers
+namespace ApiMonitoramentoAPI.Controllers
 {
     [ApiController]
     [Route("logs")]
@@ -27,21 +27,21 @@ namespace MonitoramentoAPI.Controllers
             return int.Parse(claim.Value);
         }
 
-        // GET /logs/{monitorId}
+        // GET /logs/{ApiMonitorId}
         // =========================
-        [HttpGet("{monitorId}")]
-        public IActionResult GetLogs(int monitorId)
+        [HttpGet("{ApiMonitorId}")]
+        public IActionResult GetLogs(int ApiMonitorId)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
-                .FirstOrDefault(m => m.Id == monitorId && m.UserId == userId);
+            var ApiMonitor = _context.ApiMonitors
+                .FirstOrDefault(m => m.Id == ApiMonitorId && m.UserId == userId);
 
-            if (monitor == null)
-                return NotFound(new { message = "Monitor não encontrado." });
+            if (ApiMonitor == null)
+                return NotFound(new { message = "ApiMonitor não encontrado." });
 
             var logs = _context.Logs
-                .Where(l => l.MonitorId == monitorId)
+                .Where(l => l.ApiMonitorId == ApiMonitorId)
                 .OrderByDescending(l => l.CreatedAt)
                 .Take(50)
                 .Select(l => new

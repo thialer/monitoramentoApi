@@ -1,20 +1,21 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MonitoramentoAPI.Data;
-using MonitoramentoAPI.Models;
-using MonitoramentoAPI.Models.DTOs;
+using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models;
+using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models.DTOs;
 using System.Security.Claims;
 
-namespace MonitoramentoAPI.Controllers
+namespace ApiMonitoramentoAPI.Controllers
 {
     [ApiController]
-    [Route("monitors")]
+    [Route("ApiMonitors")]
     [Authorize]
-    public class MonitorsController : ControllerBase
+    public class ApiMonitorsController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public MonitorsController(AppDbContext context)
+        public ApiMonitorsController(AppDbContext context)
         {
             _context = context;
         }
@@ -30,10 +31,10 @@ namespace MonitoramentoAPI.Controllers
         }
 
         
-        // POST /monitors
+        // POST /ApiMonitors
         // =========================
         [HttpPost]
-        public IActionResult Create(CreateMonitorRequest request)
+        public IActionResult Create(CreateApiMonitorRequest request)
         {
             var userId = GetUserId();
 
@@ -43,12 +44,24 @@ namespace MonitoramentoAPI.Controllers
             if (request.Intervalo < 1)
                 return BadRequest(new { message = "Intervalo mínimo é 1 minuto." });
 
-            var totalMonitors = _context.Monitors.Count(m => m.UserId == userId);
+            var user = _context.Users.Find(userId);
 
-            if (totalMonitors >= 5)
-                return BadRequest(new { message = "Limite de monitores atingido." });
+            if (user == null)
+                return Unauthorized();
 
-            var monitor = new Monitor
+            var totalApiMonitors = _context.ApiMonitors.Count(m => m.UserId == userId);
+
+            if (user.Plano == "FREE" && totalApiMonitors >= 1)
+            {
+                return BadRequest(new { message = "Plano FREE permite apenas 1 ApiMonitor. Faça upgrade para PRO." });
+            }
+
+            if (user.Plano == "PRO" && totalApiMonitors >= 5)
+            {
+                return BadRequest(new { message = "Limite máximo de ApiMonitores atingido." });
+            }
+
+            var ApiMonitor = new ApiMonitor
             {
                 Nome = request.Nome,
                 Url = request.Url,
@@ -59,54 +72,54 @@ namespace MonitoramentoAPI.Controllers
                 Ativo = true
             };
 
-            _context.Monitors.Add(monitor);
+            _context.ApiMonitors.Add(ApiMonitor);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetById), new { id = monitor.Id }, monitor);
+            return CreatedAtAction(nameof(GetById), new { id = ApiMonitor.Id }, ApiMonitor);
         }
 
-        // GET /monitors
+        // GET /ApiMonitors
         // =========================
         [HttpGet]
         public IActionResult GetAll()
         {
             var userId = GetUserId();
 
-            var monitors = _context.Monitors
+            var ApiMonitors = _context.ApiMonitors
                 .Where(m => m.UserId == userId)
                 .ToList();
 
-            return Ok(monitors);
+            return Ok(ApiMonitors);
         }
 
-        // GET /monitors/{id}
+        // GET /ApiMonitors/{id}
         // =========================
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
+            var ApiMonitor = _context.ApiMonitors
                 .FirstOrDefault(m => m.Id == id && m.UserId == userId);
 
-            if (monitor == null)
+            if (ApiMonitor == null)
                 return NotFound();
 
-            return Ok(monitor);
+            return Ok(ApiMonitor);
         }
 
     
-        // PUT /monitors/{id}
+        // PUT /ApiMonitors/{id}
         // =========================
         [HttpPut("{id}")]
-        public IActionResult Update(int id, UpdateMonitorRequest request)
+        public IActionResult Update(int id, UpdateApiMonitorRequest request)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
+            var ApiMonitor = _context.ApiMonitors
                 .FirstOrDefault(m => m.Id == id && m.UserId == userId);
 
-            if (monitor == null)
+            if (ApiMonitor == null)
                 return NotFound();
 
             if (!Uri.IsWellFormedUriString(request.Url, UriKind.Absolute))
@@ -115,75 +128,89 @@ namespace MonitoramentoAPI.Controllers
             if (request.Intervalo < 1)
                 return BadRequest(new { message = "Intervalo mínimo é 1 minuto." });
 
-            monitor.Nome = request.Nome;
-            monitor.Url = request.Url;
-            monitor.Intervalo = request.Intervalo;
+            ApiMonitor.Nome = request.Nome;
+            ApiMonitor.Url = request.Url;
+            ApiMonitor.Intervalo = request.Intervalo;
 
             _context.SaveChanges();
 
-            return Ok(new { message = "Monitor atualizado com sucesso." });
+            return Ok(new { message = "ApiMonitor atualizado com sucesso." });
         }
 
-        // DELETE /monitors/{id}
+        // DELETE /ApiMonitors/{id}
         // =========================
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
+            var ApiMonitor = _context.ApiMonitors
                 .FirstOrDefault(m => m.Id == id && m.UserId == userId);
 
-            if (monitor == null)
+            if (ApiMonitor == null)
                 return NotFound();
 
-            _context.Monitors.Remove(monitor);
+            _context.ApiMonitors.Remove(ApiMonitor);
             _context.SaveChanges();
 
-            return Ok(new { message = "Monitor removido com sucesso." });
+            return Ok(new { message = "ApiMonitor removido com sucesso." });
         }
 
-        // PATCH /monitors/{id}/toggle
+        // PATCH /ApiMonitors/{id}/toggle
         // =========================
         [HttpPatch("{id}/toggle")]
         public IActionResult Toggle(int id)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
+            var ApiMonitor = _context.ApiMonitors
                 .FirstOrDefault(m => m.Id == id && m.UserId == userId);
 
-            if (monitor == null)
+            if (ApiMonitor == null)
                 return NotFound();
 
-            monitor.Ativo = !monitor.Ativo;
+            ApiMonitor.Ativo = !ApiMonitor.Ativo;
 
             _context.SaveChanges();
 
             return Ok(new
             {
                 message = "Status alterado com sucesso.",
-                ativo = monitor.Ativo
+                ativo = ApiMonitor.Ativo
             });
         }
 
-        // POST /monitors/{id}/check-now
+        // POST /ApiMonitors/{id}/check-now
         // =========================
         [HttpPost("{id}/check-now")]
         public IActionResult CheckNow(int id)
         {
             var userId = GetUserId();
 
-            var monitor = _context.Monitors
+            // 🔥 BUSCAR USUÁRIO
+            var user = _context.Users.Find(userId);
+
+            if (user == null)
+                return Unauthorized();
+
+            if (user.Plano != "PRO")
+            {
+                return BadRequest(new
+                {
+                    message = "Apenas usuários PRO podem usar verificação imediata."
+                });
+            }
+
+            var ApiMonitor = _context.ApiMonitors
                 .FirstOrDefault(m => m.Id == id && m.UserId == userId);
 
-            if (monitor == null)
+            if (ApiMonitor == null)
                 return NotFound();
 
             return Ok(new
             {
                 message = "Verificação iniciada com sucesso.",
-                monitor = monitor.Nome
+                ApiMonitor = ApiMonitor.Nome
             });
         }
     }

@@ -1,0 +1,15 @@
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\bin\Debug\net8.0\Monitoramento.Shared.deps.json
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\bin\Debug\net8.0\Monitoramento.Shared.dll
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\bin\Debug\net8.0\Monitoramento.Shared.pdb
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.AssemblyInfoInputs.cache
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.AssemblyInfo.cs
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.csproj.CoreCompileInputs.cache
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.sourcelink.json
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.dll
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\refint\Monitoramento.Shared.dll
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.pdb
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\ref\Monitoramento.Shared.dll
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.csproj.AssemblyReference.cache
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\bin\Debug\net8.0\Monitoramento.Shared.runtimeconfig.json
+C:\projetos\MonitoramentoAPI\Monitoramento.Shared\obj\Debug\net8.0\Monitoramento.Shared.genruntimeconfig.cache

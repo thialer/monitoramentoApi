@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="Monitoramento.Shared/Monitoramento.Shared.csproj" Id="0b0da7de-2dfd-48a8-9c92-25cdc7c6882b" />
   <Project Path="MonitoramentoAPI/MonitoramentoAPI.csproj" />
+  <Project Path="MonitoramentoWorker/MonitoramentoWorker.csproj" Id="581fd3b9-0ca8-455b-9851-e22cba07f781" />
 </Solution>

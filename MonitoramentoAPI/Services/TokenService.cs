@@ -2,9 +2,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using MonitoramentoAPI.Models;
+using Monitoramento.Shared.Models;
+using Monitoramento.Shared.Data;
 
-namespace MonitoramentoAPI.Services
+namespace ApiMonitoramentoAPI.Services
 {
     public class TokenService
     {

@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MonitoramentoAPI.Data;
+using Monitoramento.Shared.Data;
 
 #nullable disable
 
-namespace MonitoramentoAPI.Migrations
+namespace ApiMonitoramentoAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260406234837_CreateMonitors")]
-    partial class CreateMonitors
+    [Migration("20260406234837_CreateApiMonitors")]
+    partial class CreateApiMonitors
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace MonitoramentoAPI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Monitor", b =>
+            modelBuilder.Entity("ApiMonitor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -59,10 +59,10 @@ namespace MonitoramentoAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Monitors");
+                    b.ToTable("ApiMonitors");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.User", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MonitoramentoAPI.Data;
-using MonitoramentoAPI.Models;
-using MonitoramentoAPI.Models.DTOs;
+using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models;
+using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models.DTOs;
 using System.Security.Claims;
 
-namespace MonitoramentoAPI.Controllers
+namespace ApiMonitoramentoAPI.Controllers
 {
     [ApiController]
     [Route("alerts")]

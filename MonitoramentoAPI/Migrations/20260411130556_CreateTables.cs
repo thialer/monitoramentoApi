@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MonitoramentoAPI.Migrations
+namespace ApiMonitoramentoAPI.Migrations
 {
     /// <inheritdoc />
     public partial class CreateTables : Migration
@@ -14,7 +14,7 @@ namespace MonitoramentoAPI.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Timeout",
-                table: "Monitors");
+                table: "ApiMonitors");
 
             migrationBuilder.AddColumn<string>(
                 name: "Plano",
@@ -25,13 +25,13 @@ namespace MonitoramentoAPI.Migrations
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "LastCheckedAt",
-                table: "Monitors",
+                table: "ApiMonitors",
                 type: "datetime(6)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "StatusAtual",
-                table: "Monitors",
+                table: "ApiMonitors",
                 type: "longtext",
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -67,7 +67,7 @@ namespace MonitoramentoAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MonitorId = table.Column<int>(type: "int", nullable: false),
+                    ApiMonitorId = table.Column<int>(type: "int", nullable: false),
                     StatusCode = table.Column<int>(type: "int", nullable: false),
                     ResponseTimeMs = table.Column<int>(type: "int", nullable: false),
                     IsUp = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -79,17 +79,17 @@ namespace MonitoramentoAPI.Migrations
                 {
                     table.PrimaryKey("PK_Logs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Logs_Monitors_MonitorId",
-                        column: x => x.MonitorId,
-                        principalTable: "Monitors",
+                        name: "FK_Logs_ApiMonitors_ApiMonitorId",
+                        column: x => x.ApiMonitorId,
+                        principalTable: "ApiMonitors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Monitors_UserId",
-                table: "Monitors",
+                name: "IX_ApiMonitors_UserId",
+                table: "ApiMonitors",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -98,13 +98,13 @@ namespace MonitoramentoAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Logs_MonitorId",
+                name: "IX_Logs_ApiMonitorId",
                 table: "Logs",
-                column: "MonitorId");
+                column: "ApiMonitorId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Monitors_Users_UserId",
-                table: "Monitors",
+                name: "FK_ApiMonitors_Users_UserId",
+                table: "ApiMonitors",
                 column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id",
@@ -115,8 +115,8 @@ namespace MonitoramentoAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Monitors_Users_UserId",
-                table: "Monitors");
+                name: "FK_ApiMonitors_Users_UserId",
+                table: "ApiMonitors");
 
             migrationBuilder.DropTable(
                 name: "Alerts");
@@ -125,8 +125,8 @@ namespace MonitoramentoAPI.Migrations
                 name: "Logs");
 
             migrationBuilder.DropIndex(
-                name: "IX_Monitors_UserId",
-                table: "Monitors");
+                name: "IX_ApiMonitors_UserId",
+                table: "ApiMonitors");
 
             migrationBuilder.DropColumn(
                 name: "Plano",
@@ -134,15 +134,15 @@ namespace MonitoramentoAPI.Migrations
 
             migrationBuilder.DropColumn(
                 name: "LastCheckedAt",
-                table: "Monitors");
+                table: "ApiMonitors");
 
             migrationBuilder.DropColumn(
                 name: "StatusAtual",
-                table: "Monitors");
+                table: "ApiMonitors");
 
             migrationBuilder.AddColumn<int>(
                 name: "Timeout",
-                table: "Monitors",
+                table: "ApiMonitors",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);

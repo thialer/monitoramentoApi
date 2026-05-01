@@ -1,4 +1,4 @@
-﻿namespace MonitoramentoAPI.DTOs
+﻿namespace ApiMonitoramentoAPI.DTOs
 {
     public class RegisterRequest
     {

@@ -1,4 +1,4 @@
-﻿namespace MonitoramentoAPI.Models
+﻿namespace Monitoramento.Shared.Models
 {
     public class Alert
     {

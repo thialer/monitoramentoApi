@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MonitoramentoAPI.Data;
+using Monitoramento.Shared.Data;
 
 #nullable disable
 
-namespace MonitoramentoAPI.Migrations
+namespace ApiMonitoramentoAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace MonitoramentoAPI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("Monitor", b =>
+            modelBuilder.Entity("ApiMonitor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,10 +62,10 @@ namespace MonitoramentoAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Monitors");
+                    b.ToTable("ApiMonitors");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.Alert", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +97,7 @@ namespace MonitoramentoAPI.Migrations
                     b.ToTable("Alerts");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.Log", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Log", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -114,7 +114,7 @@ namespace MonitoramentoAPI.Migrations
                     b.Property<bool>("IsUp")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("MonitorId")
+                    b.Property<int>("ApiMonitorId")
                         .HasColumnType("int");
 
                     b.Property<int>("ResponseTimeMs")
@@ -125,12 +125,12 @@ namespace MonitoramentoAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MonitorId");
+                    b.HasIndex("ApiMonitorId");
 
                     b.ToTable("Logs");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.PasswordResetToken", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -161,7 +161,7 @@ namespace MonitoramentoAPI.Migrations
                     b.ToTable("PasswordResetTokens");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.User", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -193,9 +193,9 @@ namespace MonitoramentoAPI.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Monitor", b =>
+            modelBuilder.Entity("ApiMonitor", b =>
                 {
-                    b.HasOne("MonitoramentoAPI.Models.User", "User")
+                    b.HasOne("Monitoramento.Shared.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -204,9 +204,9 @@ namespace MonitoramentoAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.Alert", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
                 {
-                    b.HasOne("MonitoramentoAPI.Models.User", "User")
+                    b.HasOne("Monitoramento.Shared.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -215,20 +215,20 @@ namespace MonitoramentoAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.Log", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Log", b =>
                 {
-                    b.HasOne("Monitor", "Monitor")
+                    b.HasOne("ApiMonitor", "ApiMonitor")
                         .WithMany()
-                        .HasForeignKey("MonitorId")
+                        .HasForeignKey("ApiMonitorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Monitor");
+                    b.Navigation("ApiMonitor");
                 });
 
-            modelBuilder.Entity("MonitoramentoAPI.Models.PasswordResetToken", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.PasswordResetToken", b =>
                 {
-                    b.HasOne("MonitoramentoAPI.Models.User", "User")
+                    b.HasOne("Monitoramento.Shared.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

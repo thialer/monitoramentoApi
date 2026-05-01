@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MonitoramentoAPI.Migrations
+namespace ApiMonitoramentoAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateMonitors : Migration
+    public partial class CreateApiMonitors : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Monitors",
+                name: "ApiMonitors",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -30,7 +30,7 @@ namespace MonitoramentoAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Monitors", x => x.Id);
+                    table.PrimaryKey("PK_ApiMonitors", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
@@ -39,7 +39,7 @@ namespace MonitoramentoAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Monitors");
+                name: "ApiMonitors");
         }
     }
 }

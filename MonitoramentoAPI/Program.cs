@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MonitoramentoAPI.Data;
-using MonitoramentoAPI.Services;
+using Monitoramento.Shared.Data;
+using ApiMonitoramentoAPI.Services;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -48,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Monitoramento API",
+        Title = "ApiMonitoramento API",
         Version = "v1"
     });
 
@@ -92,7 +92,7 @@ builder.Services.AddSwaggerGen(options =>
         {
             "Auth" => "0",
             "User" => "1",
-            "Monitors" => "2",
+            "ApiMonitors" => "2",
             "Logs" => "3",
             "Alerts" => "4",
             _ => "5"

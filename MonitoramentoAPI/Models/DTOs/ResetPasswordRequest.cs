@@ -1,4 +1,4 @@
-﻿namespace MonitoramentoAPI.Models.DTOs
+﻿namespace Monitoramento.Shared.Models.DTOs
 {
     public class ResetPasswordRequest
     {

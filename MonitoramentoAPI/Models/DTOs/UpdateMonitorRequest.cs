@@ -1,6 +1,6 @@
-﻿namespace MonitoramentoAPI.Models.DTOs
+﻿namespace Monitoramento.Shared.Models.DTOs
 {
-    public class UpdateMonitorRequest
+    public class UpdateApiMonitorRequest
     {
         public string Nome { get; set; }
         public string Url { get; set; }

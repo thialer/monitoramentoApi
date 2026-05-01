@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MonitoramentoAPI.Migrations
+namespace ApiMonitoramentoAPI.Migrations
 {
     /// <inheritdoc />
     public partial class AddCreatedAtToAlerts : Migration
