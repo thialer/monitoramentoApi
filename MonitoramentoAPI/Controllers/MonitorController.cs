@@ -65,6 +65,9 @@ namespace ApiMonitoramentoAPI.Controllers
             {
                 Nome = request.Nome,
                 Url = request.Url,
+                Metodo = request.Metodo, 
+                Headers = request.Headers, 
+                Body = request.Body,
                 Tipo = request.Tipo,
                 Intervalo = request.Intervalo,
                 UserId = userId,
@@ -187,7 +190,7 @@ namespace ApiMonitoramentoAPI.Controllers
         {
             var userId = GetUserId();
 
-            // 🔥 BUSCAR USUÁRIO
+            //  BUSCAR USUÁRIO
             var user = _context.Users.Find(userId);
 
             if (user == null)

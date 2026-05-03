@@ -1,24 +1,113 @@
-namespace ApiMonitoramentoWorker
+using Microsoft.EntityFrameworkCore;
+using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models;
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
+
+namespace MonitoramentoWorker;
+
+public class Worker : BackgroundService
 {
-    public class Worker : BackgroundService
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public Worker(
+        IServiceProvider serviceProvider,
+        IHttpClientFactory httpClientFactory)
     {
-        private readonly ILogger<Worker> _logger;
+        _serviceProvider = serviceProvider;
+        _httpClientFactory = httpClientFactory;
+    }
 
-        public Worker(ILogger<Worker> logger)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _logger = logger;
-        }
+            using var scope = _serviceProvider.CreateScope();
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var monitores = await db.ApiMonitors
+                .Where(x => x.Ativo)
+                .ToListAsync(stoppingToken);
+
+            foreach (var monitor in monitores)
             {
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                }
-                await Task.Delay(1000, stoppingToken);
+                await VerificarMonitor(monitor, db);
             }
+
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
+    }
+
+    private async Task VerificarMonitor(ApiMonitor monitor, AppDbContext db)
+    {
+        var client = _httpClientFactory.CreateClient();
+
+        client.Timeout = TimeSpan.FromSeconds(30);
+
+        var stopwatch = Stopwatch.StartNew();
+
+        int statusCode = 0;
+
+        try
+        {
+            // REQUEST DINÂMICO (GET/POST/PUT/DELETE)
+            var request = new HttpRequestMessage(
+                new HttpMethod(monitor.Metodo ?? "GET"),
+                monitor.Url
+            );
+
+            // BODY
+            if (!string.IsNullOrEmpty(monitor.Body))
+            {
+                request.Content = new StringContent(
+                    monitor.Body,
+                    Encoding.UTF8,
+                    "application/json"
+                );
+            }
+
+            if (!string.IsNullOrEmpty(monitor.Headers))
+            {
+                var headers = JsonSerializer.Deserialize<Dictionary<string, string>>(monitor.Headers);
+
+                if (headers != null)
+                {
+                    foreach (var header in headers)
+                    {
+                        request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    }
+                }
+            }
+
+            var response = await client.SendAsync(request);
+
+            stopwatch.Stop();
+
+            statusCode = (int)response.StatusCode;
+        }
+        catch
+        {
+            stopwatch.Stop();
+            statusCode = 500;
+        }
+
+        var log = new Log
+        {
+            MonitorId = monitor.Id,
+            StatusCode = statusCode,
+            ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds,
+            IsUp = statusCode >= 200 && statusCode < 300,
+            Erro = statusCode == 500 ? "Falha ao acessar endpoint" : null,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Logs.Add(log);
+
+        monitor.LastCheckedAt = DateTime.UtcNow;
+
+        await db.SaveChangesAsync();
     }
 }

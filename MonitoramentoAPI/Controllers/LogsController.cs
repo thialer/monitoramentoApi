@@ -27,21 +27,21 @@ namespace ApiMonitoramentoAPI.Controllers
             return int.Parse(claim.Value);
         }
 
-        // GET /logs/{ApiMonitorId}
+        // GET /logs/{MonitorId}
         // =========================
-        [HttpGet("{ApiMonitorId}")]
-        public IActionResult GetLogs(int ApiMonitorId)
+        [HttpGet("{MonitorId}")]
+        public IActionResult GetLogs(int MonitorId)
         {
             var userId = GetUserId();
 
             var ApiMonitor = _context.ApiMonitors
-                .FirstOrDefault(m => m.Id == ApiMonitorId && m.UserId == userId);
+                .FirstOrDefault(m => m.Id == MonitorId && m.UserId == userId);
 
             if (ApiMonitor == null)
                 return NotFound(new { message = "ApiMonitor não encontrado." });
 
             var logs = _context.Logs
-                .Where(l => l.ApiMonitorId == ApiMonitorId)
+                .Where(l => l.MonitorId == MonitorId)
                 .OrderByDescending(l => l.CreatedAt)
                 .Take(50)
                 .Select(l => new

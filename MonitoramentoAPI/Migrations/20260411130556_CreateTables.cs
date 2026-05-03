@@ -67,7 +67,7 @@ namespace ApiMonitoramentoAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ApiMonitorId = table.Column<int>(type: "int", nullable: false),
+                    MonitorId = table.Column<int>(type: "int", nullable: false),
                     StatusCode = table.Column<int>(type: "int", nullable: false),
                     ResponseTimeMs = table.Column<int>(type: "int", nullable: false),
                     IsUp = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -79,8 +79,8 @@ namespace ApiMonitoramentoAPI.Migrations
                 {
                     table.PrimaryKey("PK_Logs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Logs_ApiMonitors_ApiMonitorId",
-                        column: x => x.ApiMonitorId,
+                        name: "FK_Logs_ApiMonitors_MonitorId",
+                        column: x => x.MonitorId,
                         principalTable: "ApiMonitors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -98,9 +98,9 @@ namespace ApiMonitoramentoAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Logs_ApiMonitorId",
+                name: "IX_Logs_MonitorId",
                 table: "Logs",
-                column: "ApiMonitorId");
+                column: "MonitorId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ApiMonitors_Users_UserId",

@@ -114,7 +114,7 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.Property<bool>("IsUp")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("ApiMonitorId")
+                    b.Property<int>("MonitorId")
                         .HasColumnType("int");
 
                     b.Property<int>("ResponseTimeMs")
@@ -125,7 +125,7 @@ namespace ApiMonitoramentoAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApiMonitorId");
+                    b.HasIndex("MonitorId");
 
                     b.ToTable("Logs");
                 });
@@ -219,7 +219,7 @@ namespace ApiMonitoramentoAPI.Migrations
                 {
                     b.HasOne("ApiMonitor", "ApiMonitor")
                         .WithMany()
-                        .HasForeignKey("ApiMonitorId")
+                        .HasForeignKey("MonitorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

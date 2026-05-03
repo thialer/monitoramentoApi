@@ -11,7 +11,9 @@
         public string StatusAtual { get; set; }
         public DateTime? LastCheckedAt { get; set; }
         public bool Ativo { get; set; }
-
+        public string Metodo { get; set; } = "GET";
+        public string? Headers { get; set; }
+        public string? Body { get; set; }
         public User User { get; set; }
     }
 }

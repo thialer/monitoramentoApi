@@ -3,29 +3,26 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Monitoramento.Shared.Data;
 
 #nullable disable
 
-namespace ApiMonitoramentoAPI.Migrations
+namespace Monitoramento.Shared.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260411154008_AddPasswordReset")]
-    partial class AddPasswordReset
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.24")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+            //MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("ApiMonitor", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -36,11 +33,53 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Destino")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Alerts");
+                });
+
+            modelBuilder.Entity("Monitoramento.Shared.Models.ApiMonitor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Headers")
+                        .HasColumnType("longtext");
+
                     b.Property<int>("Intervalo")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("LastCheckedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Metodo")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -68,35 +107,6 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.ToTable("ApiMonitors");
                 });
 
-            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Destino")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Alerts");
-                });
-
             modelBuilder.Entity("Monitoramento.Shared.Models.Log", b =>
                 {
                     b.Property<int>("Id")
@@ -109,7 +119,6 @@ namespace ApiMonitoramentoAPI.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Erro")
-                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsUp")
@@ -121,7 +130,7 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.Property<int>("ResponseTimeMs")
                         .HasColumnType("int");
 
-                    b.Property<int>("StatusCode")
+                    b.Property<int?>("StatusCode")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -138,6 +147,9 @@ namespace ApiMonitoramentoAPI.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("Expiration")
                         .HasColumnType("datetime(6)");
@@ -191,7 +203,7 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ApiMonitor", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
                 {
                     b.HasOne("Monitoramento.Shared.Models.User", "User")
                         .WithMany()
@@ -202,7 +214,7 @@ namespace ApiMonitoramentoAPI.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Monitoramento.Shared.Models.Alert", b =>
+            modelBuilder.Entity("Monitoramento.Shared.Models.ApiMonitor", b =>
                 {
                     b.HasOne("Monitoramento.Shared.Models.User", "User")
                         .WithMany()
@@ -215,13 +227,13 @@ namespace ApiMonitoramentoAPI.Migrations
 
             modelBuilder.Entity("Monitoramento.Shared.Models.Log", b =>
                 {
-                    b.HasOne("ApiMonitor", "ApiMonitor")
+                    b.HasOne("Monitoramento.Shared.Models.ApiMonitor", "Monitor")
                         .WithMany()
                         .HasForeignKey("MonitorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ApiMonitor");
+                    b.Navigation("Monitor");
                 });
 
             modelBuilder.Entity("Monitoramento.Shared.Models.PasswordResetToken", b =>
