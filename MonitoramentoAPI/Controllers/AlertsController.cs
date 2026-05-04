@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Monitoramento.Shared.Data;
-using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Data;
+using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Models.DTOs;
+using System.Net.Mail;
 using System.Security.Claims;
 
 namespace ApiMonitoramentoAPI.Controllers
@@ -37,16 +38,23 @@ namespace ApiMonitoramentoAPI.Controllers
         {
             var userId = GetUserId();
 
-            if (string.IsNullOrEmpty(request.Tipo) || string.IsNullOrEmpty(request.Destino))
-                return BadRequest(new { message = "Tipo e destino são obrigatórios." });
+            if (string.IsNullOrWhiteSpace(request.Destino))
+                return BadRequest(new { message = "Destino é obrigatório." });
 
-            if (request.Tipo.ToLower() != "email" && request.Tipo.ToLower() != "whatsapp")
-                return BadRequest(new { message = "Tipo inválido. Use 'email' ou 'whatsapp'." });
+            if (!MailAddress.TryCreate(request.Destino, out _))
+                return BadRequest(new { message = "Email inválido." });
+
+            var jaExiste = _context.Alerts.Any(a =>
+                a.UserId == userId &&
+                a.Destino == request.Destino
+            );
+
+            if (jaExiste)
+                return BadRequest(new { message = "Este email já está cadastrado." });
 
             var alert = new Alert
             {
                 UserId = userId,
-                Tipo = request.Tipo.ToLower(),
                 Destino = request.Destino
             };
 
@@ -55,7 +63,6 @@ namespace ApiMonitoramentoAPI.Controllers
 
             return Ok(alert);
         }
-
         // GET /alerts
         // =========================
         [HttpGet]
@@ -87,6 +94,39 @@ namespace ApiMonitoramentoAPI.Controllers
             _context.SaveChanges();
 
             return Ok(new { message = "Alerta removido com sucesso." });
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, CreateAlertRequest request)
+        {
+            var userId = GetUserId();
+
+            var alert = _context.Alerts
+                .FirstOrDefault(a => a.Id == id && a.UserId == userId);
+
+            if (alert == null)
+                return NotFound();
+
+            if (string.IsNullOrWhiteSpace(request.Destino))
+                return BadRequest(new { message = "Destino é obrigatório." });
+
+            if (!MailAddress.TryCreate(request.Destino, out _))
+                return BadRequest(new { message = "Email inválido." });
+
+            var emailDuplicado = _context.Alerts.Any(a =>
+                a.UserId == userId &&
+                a.Destino == request.Destino &&
+                a.Id != id
+            );
+
+            if (emailDuplicado)
+                return BadRequest(new { message = "Este email já está cadastrado." });
+
+            alert.Destino = request.Destino;
+
+            _context.SaveChanges();
+
+            return Ok(alert);
         }
     }
 }

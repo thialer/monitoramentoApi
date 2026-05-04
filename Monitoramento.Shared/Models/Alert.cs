@@ -5,8 +5,8 @@
         public int Id { get; set; }
         public int UserId { get; set; }
 
-        public string Tipo { get; set; } // "email" ou "whatsapp"
-        public string Destino { get; set; } // email ou número
+        public string Tipo { get; set; } = "email";
+        public string Destino { get; set; } 
 
         public bool Ativo { get; set; } = true;
 

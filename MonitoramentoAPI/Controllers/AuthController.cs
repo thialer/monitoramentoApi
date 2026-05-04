@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ApiMonitoramentoAPI.DTOs;
+using ApiMonitoramentoAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Monitoramento.Shared.Data;
-using ApiMonitoramentoAPI.DTOs;
-using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Data;
-using ApiMonitoramentoAPI.Services;
-using System.Security.Claims;
+using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Models.DTOs;
+using System.Net.Mail;
+using System.Security.Claims;
 namespace ApiMonitoramentoAPI.Controllers
 {
     [ApiController]
@@ -27,6 +28,12 @@ namespace ApiMonitoramentoAPI.Controllers
         [HttpPost("register")]
         public IActionResult Register(RegisterRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest(new { message = "E-mail é obrigatório." });
+
+            if (!MailAddress.TryCreate(request.Email, out _))
+                return BadRequest(new { message = "E-mail inválido." });
+
             if (_context.Users.Any(u => u.Email == request.Email))
                 return BadRequest(new { message = "E-mail já cadastrado." });
 
@@ -35,8 +42,7 @@ namespace ApiMonitoramentoAPI.Controllers
                 Nome = request.Nome,
                 Email = request.Email,
                 SenhaHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                    Plano = "FREE"
-
+                Plano = "FREE"
             };
 
             _context.Users.Add(user);
