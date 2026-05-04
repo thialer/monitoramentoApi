@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MonitoramentoWorker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ec0d2a49de2d74a39d992945bb0347751f11eb6b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+50321e12eabc1d1f5b96394f8eeecf6e067b32d7")]
 [assembly: System.Reflection.AssemblyProductAttribute("MonitoramentoWorker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MonitoramentoWorker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -34,6 +34,13 @@ public class Worker : BackgroundService
 
             foreach (var monitor in monitores)
             {
+                var deveExecutar =
+                    monitor.LastCheckedAt == null ||
+                    DateTime.UtcNow >= monitor.LastCheckedAt.Value.AddMinutes(monitor.Intervalo);
+
+                if (!deveExecutar)
+                    continue;
+
                 await VerificarMonitor(monitor, db);
             }
 

@@ -30,7 +30,7 @@ namespace ApiMonitoramentoAPI.Controllers
             return int.Parse(claim.Value);
         }
 
-        
+
         // POST /ApiMonitors
         // =========================
         [HttpPost]
@@ -49,6 +49,11 @@ namespace ApiMonitoramentoAPI.Controllers
             if (user == null)
                 return Unauthorized();
 
+            if (user.Plano == "FREE")
+            {
+                request.Intervalo = 15;
+            }
+
             var totalApiMonitors = _context.ApiMonitors.Count(m => m.UserId == userId);
 
             if (user.Plano == "FREE" && totalApiMonitors >= 1)
@@ -65,8 +70,8 @@ namespace ApiMonitoramentoAPI.Controllers
             {
                 Nome = request.Nome,
                 Url = request.Url,
-                Metodo = request.Metodo, 
-                Headers = request.Headers, 
+                Metodo = request.Metodo,
+                Headers = request.Headers,
                 Body = request.Body,
                 Tipo = request.Tipo,
                 Intervalo = request.Intervalo,
@@ -183,38 +188,5 @@ namespace ApiMonitoramentoAPI.Controllers
             });
         }
 
-        // POST /ApiMonitors/{id}/check-now
-        // =========================
-        [HttpPost("{id}/check-now")]
-        public IActionResult CheckNow(int id)
-        {
-            var userId = GetUserId();
-
-            //  BUSCAR USUÁRIO
-            var user = _context.Users.Find(userId);
-
-            if (user == null)
-                return Unauthorized();
-
-            if (user.Plano != "PRO")
-            {
-                return BadRequest(new
-                {
-                    message = "Apenas usuários PRO podem usar verificação imediata."
-                });
-            }
-
-            var ApiMonitor = _context.ApiMonitors
-                .FirstOrDefault(m => m.Id == id && m.UserId == userId);
-
-            if (ApiMonitor == null)
-                return NotFound();
-
-            return Ok(new
-            {
-                message = "Verificação iniciada com sucesso.",
-                ApiMonitor = ApiMonitor.Nome
-            });
-        }
     }
 }

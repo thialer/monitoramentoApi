@@ -34,7 +34,9 @@ namespace ApiMonitoramentoAPI.Controllers
             {
                 Nome = request.Nome,
                 Email = request.Email,
-                SenhaHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                    Plano = "FREE"
+
             };
 
             _context.Users.Add(user);
@@ -56,6 +58,35 @@ namespace ApiMonitoramentoAPI.Controllers
             var token = _tokenService.GenerateToken(user);
 
             return Ok(new { token });
+        }
+
+
+        //Plano CHANGE
+        // =========================
+        [Authorize]
+        [HttpPatch("change-plan")]
+        public IActionResult ChangePlan([FromBody] string plano)
+        {
+            var userId = GetUserId();
+
+            if (userId == 0)
+                return Unauthorized();
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user == null)
+                return NotFound();
+
+            if (plano != "FREE" && plano != "PRO")
+                return BadRequest("Plano inválido.");
+
+            user.Plano = plano;
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                message = $"Plano alterado para {plano} com sucesso."
+            });
         }
 
         // FORGOT PASSWORD
@@ -124,6 +155,27 @@ namespace ApiMonitoramentoAPI.Controllers
             _context.SaveChanges();
 
             return Ok(new { message = "Senha redefinida com sucesso." });
+        }
+
+        // Adicionado método auxiliar para obter o Id do usuário a partir dos claims
+        private int GetUserId()
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+                return 0;
+
+            // Tenta várias chaves comuns de claim para o identificador do usuário
+            var idValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("id")?.Value
+                          ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrWhiteSpace(idValue))
+                return 0;
+
+            if (int.TryParse(idValue, out var id))
+                return id;
+
+            // Se o Id não for inteiro, retorna 0 (tratamento existente no controller lida com NotFound)
+            return 0;
         }
     }
 }
