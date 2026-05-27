@@ -50,7 +50,6 @@ public class Worker : BackgroundService
             await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
-
     private async Task VerificarMonitor(ApiMonitor monitor, AppDbContext db)
     {
         var client = _httpClientFactory.CreateClient();
@@ -106,29 +105,34 @@ public class Worker : BackgroundService
             .OrderByDescending(l => l.CreatedAt)
             .FirstOrDefault();
 
-        var log = new Log
-        {
-            MonitorId = monitor.Id,
-            StatusCode = statusCode,
-            ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds,
-            IsUp = isUp,
-            Erro = isUp ? null : "Falha ao acessar endpoint",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        db.Logs.Add(log);
-
         monitor.LastCheckedAt = DateTime.UtcNow;
 
         var caiuAgora = !isUp &&
-                       (ultimoLog == null || ultimoLog.IsUp == true);
+                        (ultimoLog == null || ultimoLog.IsUp == true);
+
         var voltouAgora = isUp &&
-                 ultimoLog != null &&
-                 ultimoLog.IsUp == false;
+                          ultimoLog != null &&
+                          ultimoLog.IsUp == false;
+
+        // salva log somente quando muda status
+        if (caiuAgora || voltouAgora)
+        {
+            var log = new Log
+            {
+                MonitorId = monitor.Id,
+                StatusCode = statusCode,
+                ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds,
+                IsUp = isUp,
+                Erro = isUp ? null : "Falha ao acessar endpoint",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Logs.Add(log);
+        }
 
         var alerts = db.Alerts
-    .Where(a => a.UserId == monitor.UserId && a.Tipo == "email")
-    .ToList();
+            .Where(a => a.UserId == monitor.UserId && a.Tipo == "email")
+            .ToList();
 
         if (caiuAgora)
         {

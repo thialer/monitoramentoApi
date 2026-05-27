@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Novo Perfil",
+    "Projects": [
+      {
+        "Path": "MonitoramentoAPI\\MonitoramentoAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "MonitoramentoWorker\\MonitoramentoWorker.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

@@ -8,5 +8,8 @@
         public string SenhaHash { get; set; }
         public string Plano { get; set; } // free / pro
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string? StripeSubscriptionId { get; set; }
+        public string? StripeCustomerId { get; set; }
     }
 }
