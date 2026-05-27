@@ -63,7 +63,13 @@ namespace ApiMonitoramentoAPI.Controllers
 
             var token = _tokenService.GenerateToken(user);
 
-            return Ok(new { token });
+            return Ok(new
+            {
+                token,
+                nome = user.Nome,
+                email = user.Email,
+                plano = user.Plano
+            });
         }
 
 

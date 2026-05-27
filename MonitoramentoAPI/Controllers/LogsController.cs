@@ -57,5 +57,34 @@ namespace ApiMonitoramentoAPI.Controllers
 
             return Ok(logs);
         }
+        [HttpGet]
+        public IActionResult GetAllLogs()
+        {
+            var userId = GetUserId();
+
+            var logs = (
+                from log in _context.Logs
+                join monitor in _context.ApiMonitors
+                    on log.MonitorId equals monitor.Id
+                where monitor.UserId == userId
+                orderby log.CreatedAt descending
+                select new
+                {
+                    log.Id,
+                    log.MonitorId,
+                    MonitorName = monitor.Nome,
+                    Status = log.IsUp ? "ok" : "error",
+                    StatusCode = log.StatusCode,
+                    ResponseTime = log.ResponseTimeMs,
+                    Error = log.Erro,
+                    Timestamp = log.CreatedAt
+                }
+            )
+            .Take(100)
+            .ToList();
+
+            return Ok(logs);
+        }
+
     }
 }

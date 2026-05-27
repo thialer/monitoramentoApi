@@ -44,8 +44,8 @@ namespace ApiMonitoramentoAPI.Controllers
             {
                 user.Id,
                 user.Nome,
-                user.Email
-                // depois aqui entra plano
+                user.Email,
+                user.Plano // adiciona aqui
             });
         }
 
