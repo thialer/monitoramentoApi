@@ -3,7 +3,6 @@ using ApiMonitoramentoAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Monitoramento.Shared.Data;
-using Monitoramento.Shared.Data;
 using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Models.DTOs;
 using System.Net.Mail;
