@@ -3,8 +3,9 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet restore MonitoramentoAPI/MonitoramentoAPI.csproj
+
+RUN dotnet publish MonitoramentoAPI/MonitoramentoAPI.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
