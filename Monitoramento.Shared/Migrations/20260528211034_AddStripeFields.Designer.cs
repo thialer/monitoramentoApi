@@ -12,7 +12,7 @@ using Monitoramento.Shared.Data;
 namespace Monitoramento.Shared.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260528210355_AddStripeFields")]
+    [Migration("20260528211034_AddStripeFields")]
     partial class AddStripeFields
     {
         /// <inheritdoc />
