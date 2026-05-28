@@ -118,6 +118,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 app.UseCors("AllowFrontend");
 
 app.UseSwagger();
@@ -126,7 +131,9 @@ app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapControllers();
+
+
+
 
 app.Run();
 
