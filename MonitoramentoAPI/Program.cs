@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
 });
-
+//ajuste para aceitar requisições do frontend
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
