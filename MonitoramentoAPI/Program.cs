@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("https://front-monitoramento-de-sistemas-mtk-taupe.vercel.app/", "http://localhost:5173")
+                .WithOrigins("https://front-monitoramento-de-sistemas-mtk-taupe.vercel.app", "http://localhost:5173")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
