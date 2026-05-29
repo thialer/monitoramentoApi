@@ -1,11 +1,12 @@
+using ApiMonitoramentoAPI.Services;
+// using Microsoft.OpenApi.Models; // removed to avoid missing package issue in some deploy environments
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Monitoramento.Shared.Data;
-using ApiMonitoramentoAPI.Services;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
 using Stripe.Checkout;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -40,7 +41,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+{
+    // fail fast with clear message so deploy shows helpful error
+    throw new InvalidOperationException("JWT configuration is missing: set Jwt:Key in configuration or environment variables.");
+}
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -58,6 +66,19 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ClockSkew = TimeSpan.Zero 
     };
+    // Return 401 with JSON (instead of HTML) when token validation fails
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            // skip the default logic
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized" });
+            return context.Response.WriteAsync(payload);
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -65,7 +86,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 // resolve logger early so middleware and lifetime handlers can use it
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -80,14 +100,19 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseAuthentication();
-app.UseAuthorization();
-// Middleware: log incoming Authorization header and ensure 401 responses return JSON body
+
 app.Use(async (context, next) =>
 {
     try
     {
         var auth = context.Request.Headers["Authorization"].ToString();
-        logger.LogInformation("Incoming request {Method} {Path} - Authorization: {Auth}", context.Request.Method, context.Request.Path, string.IsNullOrEmpty(auth) ? "(none)" : auth);
+
+        logger.LogInformation(
+            "Incoming request {Method} {Path} - Authorization: {Auth}",
+            context.Request.Method,
+            context.Request.Path,
+            string.IsNullOrEmpty(auth) ? "(none)" : auth
+        );
     }
     catch (Exception ex)
     {
@@ -95,15 +120,10 @@ app.Use(async (context, next) =>
     }
 
     await next();
-
-    if (context.Response.StatusCode == 401 && !context.Response.HasStarted)
-    {
-        context.Response.ContentType = "application/json";
-        var bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new { message = "Unauthorized" });
-        context.Response.ContentLength = bytes.Length;
-        await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
-    }
 });
+
+app.UseAuthorization();
+
 
 app.MapControllers();
 
