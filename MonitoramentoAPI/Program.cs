@@ -68,30 +68,7 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero 
     };
     // Return 401 with JSON (instead of HTML) when token validation fails
-    options.Events = new JwtBearerEvents
-    {
-        OnChallenge = async context =>
-        {
-            // skip the default logic
-            context.HandleResponse();
-            context.Response.StatusCode = 401;
-            context.Response.ContentType = "application/json";
-
-            var errorMsg = "Unauthorized - Token validation failed";
-            if (context.AuthenticateFailure != null)
-            {
-                errorMsg += $": {context.AuthenticateFailure.Message}";
-            }
-
-            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = errorMsg });
-            await context.Response.WriteAsync(payload);
-        },
-
-
-
-
-
-    };
+    
 });
 
 builder.Services.AddAuthorization();
