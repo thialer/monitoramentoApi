@@ -107,6 +107,30 @@ app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
+// Middleware: log incoming Authorization header and ensure 401 responses return JSON body
+app.Use(async (context, next) =>
+{
+    try
+    {
+        var auth = context.Request.Headers["Authorization"].ToString();
+        logger.LogInformation("Incoming request {Method} {Path} - Authorization: {Auth}", context.Request.Method, context.Request.Path, string.IsNullOrEmpty(auth) ? "(none)" : auth);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to log Authorization header");
+    }
+
+    await next();
+
+    if (context.Response.StatusCode == 401 && !context.Response.HasStarted)
+    {
+        context.Response.ContentType = "application/json";
+        var bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new { message = "Unauthorized" });
+        context.Response.ContentLength = bytes.Length;
+        await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
+    }
+});
+
 app.MapControllers();
 
 // Health check and root redirect to Swagger to satisfy platforms (e.g. Render) expecting 200 on '/'
