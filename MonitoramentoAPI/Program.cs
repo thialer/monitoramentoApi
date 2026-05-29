@@ -11,9 +11,13 @@ using Stripe.Checkout;
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
-var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
-
-builder.WebHost.UseUrls($"http://*:{port}");
+var portEnv = Environment.GetEnvironmentVariable("PORT");
+// Only override URLs if the hosting platform provided a PORT env var. Do not force a default port
+// because platforms like Render expect the process to listen on the port they provide.
+if (!string.IsNullOrEmpty(portEnv))
+{
+    builder.WebHost.UseUrls($"http://*:{portEnv}");
+}
 Stripe.StripeConfiguration.ApiKey =
     builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddCors(options =>
@@ -79,8 +83,61 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Health check and root redirect to Swagger to satisfy platforms (e.g. Render) expecting 200 on '/'
-app.MapGet("/", () => Results.Redirect("/swagger/index.html"));
+// root returns simple JSON OK so platforms' health checks get 200
+app.MapGet("/", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+// log lifetime events to help diagnose unexpected shutdowns
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        logger.LogInformation("Application started (lifetime event). Starting heartbeat task.");
+
+        // background heartbeat to help diagnose unexpected shutdowns in hosting platforms
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (!app.Lifetime.ApplicationStopping.IsCancellationRequested)
+                {
+                    logger.LogInformation("heartbeat: application alive at {Time}", DateTime.UtcNow);
+                    await Task.Delay(TimeSpan.FromSeconds(30));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Heartbeat task failed");
+            }
+        });
+    });
+app.Lifetime.ApplicationStopping.Register(() => logger.LogWarning("Application stopping (lifetime event)."));
+app.Lifetime.ApplicationStopped.Register(() => logger.LogWarning("Application stopped (lifetime event)."));
+
+// Log environment for troubleshooting and register global exception handlers
+try
+{
+    logger.LogInformation("Startup info: PORT={Port}, Environment={Env}, DefaultConnectionExists={HasConn}",
+        Environment.GetEnvironmentVariable("PORT") ?? "(none)",
+        app.Environment.EnvironmentName,
+        !string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection"))
+    );
+
+    AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+    {
+        logger.LogError(e.ExceptionObject as Exception, "Unhandled exception detected");
+    };
+
+    TaskScheduler.UnobservedTaskException += (s, e) =>
+    {
+        logger.LogError(e.Exception, "Unobserved task exception detected");
+        e.SetObserved();
+    };
+}
+catch (Exception ex)
+{
+    // ensure any startup logging issues do not prevent app from running
+    logger.LogError(ex, "Error while registering diagnostics handlers");
+}
 
 
 
