@@ -9,7 +9,10 @@
         public string Plano { get; set; } // free / pro
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string? StripeSubscriptionId { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string? StripeCustomerId { get; set; }
     }
 }
