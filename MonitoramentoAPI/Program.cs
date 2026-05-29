@@ -74,7 +74,7 @@ builder.Services.AddAuthentication(options =>
             context.HandleResponse();
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
-            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized" });
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized - Token validation failed" });
             return context.Response.WriteAsync(payload);
         }
     };
@@ -99,7 +99,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Digite: Bearer {seu token}"
+        Description = "Insira apenas o token JWT (sem o prefixo 'Bearer')"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -132,22 +132,34 @@ app.UseSwaggerUI();
 
 app.UseAuthentication();
 
+// Middleware to handle Authorization header properly
 app.Use(async (context, next) =>
 {
     try
     {
         var auth = context.Request.Headers["Authorization"].ToString();
 
+        if (!string.IsNullOrEmpty(auth))
+        {
+            // Remove duplicate "Bearer Bearer" if it exists
+            if (auth.StartsWith("Bearer Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var cleanToken = auth["Bearer Bearer ".Length..];
+                context.Request.Headers["Authorization"] = $"Bearer {cleanToken}";
+                logger.LogWarning("Fixed duplicate 'Bearer Bearer' in Authorization header");
+            }
+        }
+
         logger.LogInformation(
             "Incoming request {Method} {Path} - Authorization: {Auth}",
             context.Request.Method,
             context.Request.Path,
-            string.IsNullOrEmpty(auth) ? "(none)" : auth
+            string.IsNullOrEmpty(auth) ? "(none)" : auth[..Math.Min(50, auth.Length)] + "..."
         );
     }
     catch (Exception ex)
     {
-        logger.LogWarning(ex, "Failed to log Authorization header");
+        logger.LogWarning(ex, "Failed to process Authorization header");
     }
 
     await next();
@@ -155,6 +167,22 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
+// Middleware to log authentication results
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == 401)
+    {
+        var auth = context.Request.Headers["Authorization"].ToString();
+        logger.LogWarning(
+            "401 Unauthorized - Path: {Path}, Method: {Method}, Auth: {Auth}",
+            context.Request.Path,
+            context.Request.Method,
+            string.IsNullOrEmpty(auth) ? "(none)" : auth[..Math.Min(50, auth.Length)]
+        );
+    }
+});
 
 app.MapControllers();
 
