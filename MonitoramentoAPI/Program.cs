@@ -67,6 +67,8 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+// resolve logger early so middleware and lifetime handlers can use it
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -111,7 +113,6 @@ app.MapGet("/", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 // log lifetime events to help diagnose unexpected shutdowns
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
     app.Lifetime.ApplicationStarted.Register(() =>
     {
         logger.LogInformation("Application started (lifetime event). Starting heartbeat task.");
