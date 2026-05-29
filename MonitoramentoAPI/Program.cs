@@ -58,8 +58,10 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
@@ -68,14 +70,34 @@ builder.Services.AddAuthentication(options =>
     // Return 401 with JSON (instead of HTML) when token validation fails
     options.Events = new JwtBearerEvents
     {
-        OnChallenge = context =>
+        OnChallenge = async context =>
         {
             // skip the default logic
             context.HandleResponse();
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
-            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized - Token validation failed" });
-            return context.Response.WriteAsync(payload);
+
+            var errorMsg = "Unauthorized - Token validation failed";
+            if (context.AuthenticateFailure != null)
+            {
+                errorMsg += $": {context.AuthenticateFailure.Message}";
+            }
+
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { message = errorMsg });
+            await context.Response.WriteAsync(payload);
+        },
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(token))
+            {
+                // Remove "Bearer " prefix if present
+                if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    context.Token = token["Bearer ".Length..];
+                }
+            }
+            return Task.CompletedTask;
         }
     };
 });
