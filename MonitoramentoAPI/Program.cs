@@ -78,6 +78,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Health check and root redirect to Swagger to satisfy platforms (e.g. Render) expecting 200 on '/'
+app.MapGet("/", () => Results.Redirect("/swagger/index.html"));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
 
 
 
