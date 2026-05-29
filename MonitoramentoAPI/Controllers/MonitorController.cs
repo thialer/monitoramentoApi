@@ -4,6 +4,7 @@ using Monitoramento.Shared.Data;
 using Monitoramento.Shared.Models;
 using Monitoramento.Shared.Models.DTOs;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace ApiMonitoramentoAPI.Controllers
 {
@@ -13,10 +14,12 @@ namespace ApiMonitoramentoAPI.Controllers
     public class ApiMonitorsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<ApiMonitorsController> _logger;
 
-        public ApiMonitorsController(AppDbContext context)
+        public ApiMonitorsController(AppDbContext context, ILogger<ApiMonitorsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         private int GetUserId()
@@ -35,6 +38,17 @@ namespace ApiMonitoramentoAPI.Controllers
         [HttpPost]
         public IActionResult Create(CreateApiMonitorRequest request)
         {
+            // Log Authorization header for debugging 401 issues from frontend/deployed app
+            try
+            {
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                _logger.LogInformation("[ApiMonitorsController] Create called. Authorization header: {Auth}", authHeader ?? "(none)");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read Authorization header");
+            }
+
             var userId = GetUserId();
 
             if (!Uri.IsWellFormedUriString(request.Url, UriKind.Absolute))
