@@ -86,19 +86,11 @@ builder.Services.AddAuthentication(options =>
             var payload = System.Text.Json.JsonSerializer.Serialize(new { message = errorMsg });
             await context.Response.WriteAsync(payload);
         },
-        OnMessageReceived = context =>
-        {
-            var token = context.Request.Headers["Authorization"].ToString();
-            if (!string.IsNullOrEmpty(token))
-            {
-                // Remove "Bearer " prefix if present
-                if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    context.Token = token["Bearer ".Length..];
-                }
-            }
-            return Task.CompletedTask;
-        }
+
+
+
+
+
     };
 });
 
@@ -154,38 +146,6 @@ app.UseSwaggerUI();
 
 app.UseAuthentication();
 
-// Middleware to handle Authorization header properly
-app.Use(async (context, next) =>
-{
-    try
-    {
-        var auth = context.Request.Headers["Authorization"].ToString();
-
-        if (!string.IsNullOrEmpty(auth))
-        {
-            // Remove duplicate "Bearer Bearer" if it exists
-            if (auth.StartsWith("Bearer Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                var cleanToken = auth["Bearer Bearer ".Length..];
-                context.Request.Headers["Authorization"] = $"Bearer {cleanToken}";
-                logger.LogWarning("Fixed duplicate 'Bearer Bearer' in Authorization header");
-            }
-        }
-
-        logger.LogInformation(
-            "Incoming request {Method} {Path} - Authorization: {Auth}",
-            context.Request.Method,
-            context.Request.Path,
-            string.IsNullOrEmpty(auth) ? "(none)" : auth[..Math.Min(50, auth.Length)] + "..."
-        );
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Failed to process Authorization header");
-    }
-
-    await next();
-});
 
 app.UseAuthorization();
 
