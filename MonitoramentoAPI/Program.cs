@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+// using Microsoft.OpenApi.Models; // removido para evitar erro de resolução do namespace
 using Monitoramento.Shared.Data;
 using ApiMonitoramentoAPI.Services;
 using System.Text;
@@ -61,61 +61,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<TokenService>();
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ApiMonitoramento API",
-        Version = "v1"
-    });
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "Digite o token no formato: Bearer {seu_token}",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
-
-    //ordem dos controllers no Swagger
-    options.TagActionsBy(api =>
-    {
-        return new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] };
-    });
-
-    options.DocInclusionPredicate((name, api) => true);
-
-    options.OrderActionsBy(apiDesc =>
-    {
-        var controller = apiDesc.ActionDescriptor.RouteValues["controller"];
-
-        return controller switch
-        {
-            "Auth" => "0",
-            "User" => "1",
-            "ApiMonitors" => "2",
-            "Logs" => "3",
-            "Alerts" => "4",
-            _ => "5"
-        };
-    });
-});
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())

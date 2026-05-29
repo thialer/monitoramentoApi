@@ -23,7 +23,6 @@ namespace ApiMonitoramentoAPI.Migrations
                 .HasAnnotation("ProductVersion", "8.0.24")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Monitoramento.Shared.Models.User", b =>
                 {
