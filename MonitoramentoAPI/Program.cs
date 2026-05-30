@@ -40,6 +40,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
+// HttpClient factory for background monitoring service
+builder.Services.AddHttpClient();
+
+// Register Worker Health Service for diagnostics
+builder.Services.AddSingleton<IWorkerHealthService, WorkerHealthService>();
+
+// Register the monitoring background service
+builder.Services.AddHostedService<MonitoringWorker>();
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey))
 {
@@ -150,35 +159,82 @@ app.MapControllers();
 app.MapGet("/", () => Results.Ok(new { status = "ok" }));
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-// log lifetime events to help diagnose unexpected shutdowns
-    app.Lifetime.ApplicationStarted.Register(() =>
-    {
-        logger.LogInformation("Application started (lifetime event). Starting heartbeat task.");
+// Worker health check endpoint for monitoring background service
+app.MapGet("/health/worker", (IWorkerHealthService healthService) =>
+{
+    var status = healthService.GetStatus();
+    var uptime = DateTime.UtcNow - status.StartedAt;
 
-        // background heartbeat to help diagnose unexpected shutdowns in hosting platforms
-        _ = Task.Run(async () =>
+    var response = new
+    {
+        status = "ok",
+        worker = new
         {
-            try
+            isRunning = status.IsRunning,
+            uptime = new
             {
-                while (!app.Lifetime.ApplicationStopping.IsCancellationRequested)
-                {
-                    logger.LogInformation("heartbeat: application alive at {Time}", DateTime.UtcNow);
-                    await Task.Delay(TimeSpan.FromSeconds(30));
-                }
-            }
-            catch (Exception ex)
+                days = uptime.Days,
+                hours = uptime.Hours,
+                minutes = uptime.Minutes,
+                seconds = uptime.Seconds,
+                totalSeconds = uptime.TotalSeconds
+            },
+            lastCycleTime = status.LastCycleTime,
+            cyclesCompleted = status.TotalCyclesCompleted,
+            errorsEncountered = status.TotalErrorsEncountered,
+            monitorsProcessedLastCycle = status.MonitorsProcessedLastCycle,
+            monitorsSkippedLastCycle = status.MonitorsSkippedLastCycle,
+            lastError = status.LastErrorMessage
+        }
+    };
+
+    return Results.Ok(response);
+})
+.WithName("WorkerHealth")
+.WithDescription("Get detailed health status of the MonitoringWorker background service");
+
+// log lifetime events to help diagnose unexpected shutdowns
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    logger.LogInformation("✓ Application started successfully");
+    logger.LogInformation("🔄 MonitoringWorker should be running in background");
+    logger.LogInformation("📊 Available endpoints: /swagger, /health, /");
+
+    // background heartbeat to help diagnose unexpected shutdowns in hosting platforms
+    _ = Task.Run(async () =>
+    {
+        try
+        {
+            while (!app.Lifetime.ApplicationStopping.IsCancellationRequested)
             {
-                logger.LogError(ex, "Heartbeat task failed");
+                logger.LogDebug("❤️ Heartbeat: application alive at {Time}", DateTime.UtcNow);
+                await Task.Delay(TimeSpan.FromSeconds(30));
             }
-        });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Heartbeat task failed");
+        }
     });
-app.Lifetime.ApplicationStopping.Register(() => logger.LogWarning("Application stopping (lifetime event)."));
-app.Lifetime.ApplicationStopped.Register(() => logger.LogWarning("Application stopped (lifetime event)."));
+});
+
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    logger.LogWarning("⚠️ Application stopping signal received - graceful shutdown initiated");
+});
+
+app.Lifetime.ApplicationStopped.Register(() =>
+{
+    logger.LogWarning("❌ Application stopped");
+});
+
+// Graceful shutdown with timeout for BackgroundServices
+var shutdownTimeout = TimeSpan.FromSeconds(30);
 
 // Log environment for troubleshooting and register global exception handlers
 try
 {
-    logger.LogInformation("Startup info: PORT={Port}, Environment={Env}, DefaultConnectionExists={HasConn}",
+    logger.LogInformation("🚀 Startup info: PORT={Port}, Environment={Env}, DefaultConnectionExists={HasConn}",
         Environment.GetEnvironmentVariable("PORT") ?? "(none)",
         app.Environment.EnvironmentName,
         !string.IsNullOrEmpty(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -186,12 +242,12 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (s, e) =>
     {
-        logger.LogError(e.ExceptionObject as Exception, "Unhandled exception detected");
+        logger.LogError(e.ExceptionObject as Exception, "⛔ Unhandled exception detected");
     };
 
     TaskScheduler.UnobservedTaskException += (s, e) =>
     {
-        logger.LogError(e.Exception, "Unobserved task exception detected");
+        logger.LogError(e.Exception, "⛔ Unobserved task exception detected");
         e.SetObserved();
     };
 }
@@ -201,8 +257,8 @@ catch (Exception ex)
     logger.LogError(ex, "Error while registering diagnostics handlers");
 }
 
-
-
+// Configure graceful shutdown timeout
+builder.WebHost.UseShutdownTimeout(shutdownTimeout);
 
 app.Run();
 

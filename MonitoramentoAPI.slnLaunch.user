@@ -5,10 +5,6 @@
       {
         "Path": "MonitoramentoAPI\\MonitoramentoAPI.csproj",
         "Action": "Start"
-      },
-      {
-        "Path": "MonitoramentoWorker\\MonitoramentoWorker.csproj",
-        "Action": "Start"
       }
     ]
   }
