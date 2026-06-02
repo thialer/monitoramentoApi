@@ -172,6 +172,10 @@ public class MonitoringWorker : BackgroundService
                 monitor.Url
             );
 
+            request.Headers.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+            );
+
             if (!string.IsNullOrEmpty(monitor.Body))
             {
                 request.Content = new StringContent(
@@ -229,24 +233,30 @@ public class MonitoringWorker : BackgroundService
             _logger.LogError(ex, "Unexpected error checking monitor {MonitorId} ({MonitorName})", monitor.Id, monitor.Nome);
         }
 
-        var isUp = statusCode >= 200 && statusCode < 300;
+        var isUp = (statusCode >= 200 && statusCode < 300) || statusCode == 403;
+        var novoStatus = isUp ? "UP" : "DOWN";
 
-        var ultimoLog = db.Logs
+        var statusAnterior = monitor.StatusAtual;
+
+        // Determine if there is already a log for this monitor today (UTC)
+        var utcNow = DateTime.UtcNow;
+        var lastLog = await db.Logs
             .Where(l => l.MonitorId == monitor.Id)
             .OrderByDescending(l => l.CreatedAt)
-            .FirstOrDefault();
+            .Select(l => new { l.CreatedAt, l.IsUp })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        monitor.LastCheckedAt = DateTime.UtcNow;
+        var hasLogToday = lastLog != null && lastLog.CreatedAt.Date == utcNow.Date;
 
-        var caiuAgora = !isUp &&
-                        (ultimoLog == null || ultimoLog.IsUp == true);
+        monitor.LastCheckedAt = utcNow;
+        monitor.StatusAtual = novoStatus;
 
-        var voltouAgora = isUp &&
-                          ultimoLog != null &&
-                          ultimoLog.IsUp == false;
+        // Detect status changes compared to previous stored status
+        var caiuAgora = !isUp && (statusAnterior == null || statusAnterior == "UP");
+        var voltouAgora = isUp && statusAnterior == "DOWN";
 
-        // Save log only when status changes
-        if (caiuAgora || voltouAgora)
+        // Create a log if: first log of the day OR status changed now
+        if (!hasLogToday || caiuAgora || voltouAgora)
         {
             var log = new Log
             {
@@ -255,12 +265,11 @@ public class MonitoringWorker : BackgroundService
                 ResponseTimeMs = (int)stopwatch.ElapsedMilliseconds,
                 IsUp = isUp,
                 Erro = !isUp ? (errorDetail ?? "Falha ao acessar endpoint") : null,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = utcNow
             };
 
             db.Logs.Add(log);
-            _logger.LogInformation("Log created for monitor {MonitorId}: {Status}", 
-                monitor.Id, isUp ? "UP" : "DOWN");
+            _logger.LogInformation("Log created for monitor {MonitorId}: {Status}", monitor.Id, isUp ? "UP" : "DOWN");
         }
 
         var alerts = db.Alerts
@@ -272,9 +281,13 @@ public class MonitoringWorker : BackgroundService
             _logger.LogDebug("No email alerts configured for monitor {MonitorId}", monitor.Id);
         }
 
-        if (caiuAgora)
+        // Enviar alerta quando houver mudança de status OU quando for o primeiro log do dia e estiver DOWN
+        var shouldSendDownAlert = caiuAgora || (!hasLogToday && !isUp);
+        var shouldSendUpAlert = voltouAgora;
+
+        if (shouldSendDownAlert)
         {
-            _logger.LogWarning("Monitor {MonitorId} ({MonitorName}) just went DOWN", monitor.Id, monitor.Nome);
+            _logger.LogWarning("Monitor {MonitorId} ({MonitorName}) is DOWN (alert will be sent)", monitor.Id, monitor.Nome);
 
             foreach (var alert in alerts)
             {
@@ -289,13 +302,12 @@ public class MonitoringWorker : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send email alert for monitor down (MonitorId: {MonitorId}, Email: {Email})", 
-                        monitor.Id, alert.Destino);
+                    _logger.LogError(ex, "Failed to send email alert for monitor down (MonitorId: {MonitorId}, Email: {Email})", monitor.Id, alert.Destino);
                 }
             }
         }
 
-        if (voltouAgora)
+        if (shouldSendUpAlert)
         {
             _logger.LogInformation("Monitor {MonitorId} ({MonitorName}) just went UP", monitor.Id, monitor.Nome);
 
@@ -312,8 +324,7 @@ public class MonitoringWorker : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send email alert for monitor up (MonitorId: {MonitorId}, Email: {Email})", 
-                        monitor.Id, alert.Destino);
+                    _logger.LogError(ex, "Failed to send email alert for monitor up (MonitorId: {MonitorId}, Email: {Email})", monitor.Id, alert.Destino);
                 }
             }
         }
